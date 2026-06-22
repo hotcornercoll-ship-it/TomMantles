@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SlabLink - Custom Ledger</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #0b0f19;
+      color: #f3f4f6;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .glassmorphism {
+      background: rgba(17, 24, 39, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+  </style>
+</head>
+<body class="p-4 min-h-screen flex flex-col justify-between">
+
+  <div class="max-w-md mx-auto w-full space-y-4">
+    
+    <!-- Header -->
+    <header class="flex justify-between items-center py-2 px-1">
+      <div class="flex items-center space-x-2">
+        <div class="bg-blue-600 p-2.5 rounded-xl shadow-lg shadow-blue-500/20 text-xl">
+          💎
+        </div>
+        <div>
+          <h1 class="text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 italic">SLABLINK</h1>
+          <p class="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Custom Collection Ledger</p>
+        </div>
+      </div>
+      
+      <button onclick="toggleSettings(true)" class="px-4 py-2 bg-blue-900/40 rounded-xl border border-blue-500/30 text-blue-400 font-bold text-xs uppercase tracking-wider">
+        ⚙️ Config
+      </button>
+    </header>
+
+    <!-- Main Entry Card Form -->
+    <main class="space-y-4">
+      <div class="glassmorphism rounded-2xl p-5 space-y-4 shadow-2xl">
+        
+        <!-- Row 1: Year, Card #, Status -->
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Year</label>
+            <input type="number" id="card-year" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl p-3 text-sm outline-none text-white transition" placeholder="2024">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Card #</label>
+            <input type="text" id="card-num" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl p-3 text-sm outline-none text-white transition" placeholder="e.g. 44">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Type</label>
+            <select id="card-rawgraded" onchange="handleTypeChange()" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl p-3 text-sm outline-none text-white transition appearance-none">
+              <option value="Raw">Raw</option>
+              <option value="Graded">Graded</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Row 2: Brand & Subset -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Brand</label>
+            <select id="card-brand" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl p-3 text-sm outline-none text-white transition appearance-none">
+              <option value="Topps">Topps</option>
+              <option value="Bowman">Bowman</option>
+              <option value="Bowman Color">Bowman Color</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Subset</label>
+            <input type="text" id="card-subset" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl p-3 text-sm outline-none text-white transition" placeholder="e.g. Chrome Rookie">
+          </div>
+        </div>
+
+        <!-- Row 3: Player Name -->
+        <div>
+          <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Player Name</label>
+          <input type="text" id="card-player" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl p-3 text-sm outline-none text-white transition" placeholder="e.g. Elly De La Cruz">
+        </div>
+
+        <!-- Row 4: Grading Block (Hidden by default, shows when "Graded" is chosen) -->
+        <div id="grading-section" class="hidden bg-gray-950/50 p-4 rounded-xl border border-gray-800 space-y-3 transition-all">
+          <span class="text-[9px] font-black uppercase text-blue-400 tracking-wider">Grading Specifications</span>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block text-[9px] font-bold text-gray-500 uppercase mb-1">Company</label>
+              <select id="card-company" class="w-full bg-gray-900 border border-gray-800 rounded-lg p-2 text-xs text-white outline-none">
+                <option value="PSA">PSA</option>
+                <option value="SGC">SGC</option>
+                <option value="Beckett">Beckett</option>
+                <option value="CSG">CSG</option>
+                <option value="GMA">GMA</option>
+                <option value="RGC">RGC</option>
+                <option value="KSA">KSA</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[9px] font-bold text-gray-500 uppercase mb-1">Grade</label>
+              <input type="text" id="card-grade" class="w-full bg-gray-900 border border-gray-800 rounded-lg p-2 text-xs text-white outline-none" placeholder="10">
+            </div>
+            <div>
+              <label class="block text-[9px] font-bold text-gray-500 uppercase mb-1">Grading Note</label>
+              <input type="text" id="card-note" class="w-full bg-gray-900 border border-gray-800 rounded-lg p-2 text-xs text-white outline-none" placeholder="Auto 10">
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 5: Serial # & Cost -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Serial #</label>
+            <input type="text" id="card-serial" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl p-3 text-sm outline-none text-white transition" placeholder="e.g. 01/99 or N/A">
+          </div>
+          <div class="relative">
+            <span class="absolute left-3 top-7.5 text-gray-500 text-xs">$</span>
+            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1 ml-1">Cost</label>
+            <input type="number" step="0.01" id="card-cost" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl p-3 pl-6 text-sm outline-none text-white transition" placeholder="0.00">
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button onclick="submitCustomCard()" class="w-full py-4 mt-2 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl text-xs uppercase tracking-widest shadow-lg active:scale-95 transition-all">
+          💾 Save Row to Sheet
+        </button>
+      </div>
+    </main>
+
+    <!-- Footer Status Area -->
+    <footer class="text-center py-2">
+      <div id="status-card" class="inline-flex items-center space-x-2 bg-gray-900/60 px-4 py-2.5 rounded-full border border-gray-800/40">
+        <div id="status-indicator" class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+        <p id="status-text" class="text-xs font-bold text-gray-400 uppercase tracking-wider">Connected</p>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Configuration Slider Drawer -->
+  <div id="settings-drawer" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
+    <div class="absolute bottom-0 left-0 right-0 max-w-md mx-auto bg-[#0d1220] rounded-t-3xl border-t border-gray-800 p-6 space-y-6 transform translate-y-full transition-transform duration-300">
+      <div class="flex justify-between items-center">
+        <h2 class="text-lg font-black tracking-wide text-white uppercase italic">🔗 Setup Connection</h2>
+        <button onclick="toggleSettings(false)" class="text-gray-500 hover:text-white p-2 text-xl font-bold">✕</button>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-[11px] font-black text-blue-400 uppercase tracking-wider mb-1.5">Google Sheet Web App URL</label>
+          <input type="url" id="sheet-url-input" class="w-full bg-gray-950 border border-gray-800 rounded-xl p-3 text-sm outline-none text-white focus:border-blue-500 transition" placeholder="Paste Web App URL here...">
+        </div>
+      </div>
+      <button onclick="saveSettings()" class="w-full py-4 bg-blue-600 text-white font-black rounded-xl text-xs uppercase tracking-widest shadow-lg">Save Setup Link</button>
+    </div>
+  </div>
+
+  <!-- Alert Popup -->
+  <div id="notification" class="fixed top-4 left-4 right-4 max-w-md mx-auto z-50 transform -translate-y-24 transition-transform duration-300">
+    <div id="notification-bg" class="bg-gray-900 border border-gray-800 rounded-2xl p-4 shadow-2xl flex items-center space-x-3">
+      <div id="notification-icon" class="w-10 h-10 rounded-xl flex items-center justify-center text-lg"></div>
+      <div>
+        <p id="notification-title" class="text-xs font-black uppercase tracking-wider text-white"></p>
+        <p id="notification-desc" class="text-[11px] text-gray-400 font-medium"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logic Controller -->
+  <script>
+    const statusText = document.getElementById('status-text');
+    const statusIndicator = document.getElementById('status-indicator');
+    let config = { sheetAppUrl: localStorage.getItem('sheetAppUrl') || '' };
+
+    document.getElementById('sheet-url-input').value = config.sheetAppUrl;
+
+    function handleTypeChange() {
+      const type = document.getElementById('card-rawgraded').value;
+      const gradingSection = document.getElementById('grading-section');
+      if (type === 'Graded') {
+        gradingSection.classList.remove('hidden');
+      } else {
+        gradingSection.classList.add('hidden');
+      }
+    }
+
+    function toggleSettings(open) {
+      const drawer = document.getElementById('settings-drawer');
+      drawer.classList.toggle('opacity-0', !open);
+      drawer.classList.toggle('pointer-events-none', !open);
+      drawer.firstElementChild.classList.toggle('translate-y-full', !open);
+    }
+
+    function saveSettings() {
+      config.sheetAppUrl = document.getElementById('sheet-url-input').value.trim();
+      localStorage.setItem('sheetAppUrl', config.sheetAppUrl);
+      toggleSettings(false);
+      showNotification('Connected', 'Spreadsheet linked successfully.', 'success');
+    }
+
+    async function submitCustomCard() {
+      if (!config.sheetAppUrl) { showNotification('Link Required', 'Configure Web App URL first.', 'error'); toggleSettings(true); return; }
+
+      const player = document.getElementById('card-player').value.trim();
+      const year = document.getElementById('card-year').value.trim();
+      const rawGraded = document.getElementById('card-rawgraded').value;
+
+      if (!player || !year) { showNotification('Missing Items', 'Year and Player Name are required.', 'error'); return; }
+
+      updateStatus('Writing Row...', 'yellow');
+
+      const payload = {
+        year: year,
+        player: player,
+        brand: document.getElementById('card-brand').value,
+        subset: document.getElementById('card-subset').value.trim() || 'Base',
+        cardNum: document.getElementById('card-num').value.trim() || 'N/A',
+        rawGraded: rawGraded,
+        company: rawGraded === 'Graded' ? document.getElementById('card-company').value : 'N/A',
+        grade: rawGraded === 'Graded' ? document.getElementById('card-grade').value.trim() : 'N/A',
+        gradingNote: rawGraded === 'Graded' ? document.getElementById('card-note').value.trim() : 'N/A',
+        serial: document.getElementById('card-serial').value.trim() || 'N/A',
+        cost: document.getElementById('card-cost').value || 0
+      };
+
+      try {
+        await fetch(config.sheetAppUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        showNotification('Saved!', `${payload.player} added to database.`, 'success');
+        updateStatus('Connected', 'green');
+        
+        // Flash clear core inputs
+        document.getElementById('card-player').value = "";
+        document.getElementById('card-subset').value = "";
+        document.getElementById('card-num').value = "";
+        document.getElementById('card-serial').value = "";
+        document.getElementById('card-cost').value = "";
+        document.getElementById('card-grade').value = "";
+        document.getElementById('card-note').value = "";
+      } catch (err) {
+        showNotification('Connection Error', 'Could not record card row.', 'error');
+        updateStatus('Save Error', 'red');
+      }
+    }
+
+    function updateStatus(msg, color) {
+      statusText.innerText = msg;
+      statusIndicator.className = `w-2 h-2 rounded-full ${color === 'green' ? 'bg-emerald-500 animate-pulse' : color === 'yellow' ? 'bg-amber-500 animate-ping' : 'bg-red-500'}`;
+    }
+
+    function showNotification(title, message, type) {
+      const box = document.getElementById('notification');
+      document.getElementById('notification-title').innerText = title;
+      document.getElementById('notification-desc').innerText = message;
+      document.getElementById('notification-bg').className = `border rounded-2xl p-4 shadow-2xl flex items-center space-x-3 ${type === 'success' ? 'bg-emerald-950 border-emerald-800' : 'bg-red-950 border-red-800'}`;
+      box.classList.remove('-translate-y-24');
+      setTimeout(() => box.classList.add('-translate-y-24'), 3000);
+    }
+  </script>
+</body>
+</html>
