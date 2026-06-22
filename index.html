@@ -68,16 +68,23 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Brand</label>
-            <select id="card-brand" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl p-3 text-sm outline-none text-white transition appearance-none">
+            <select id="card-brand" onchange="handleBrandChange()" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl p-3 text-sm outline-none text-white transition appearance-none">
               <option value="Topps">Topps</option>
               <option value="Bowman">Bowman</option>
               <option value="Bowman Color">Bowman Color</option>
+              <option value="Other">Other</option>
             </select>
           </div>
           <div>
             <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Subset</label>
             <input type="text" id="card-subset" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl p-3 text-sm outline-none text-white transition" placeholder="e.g. Chrome Rookie">
           </div>
+        </div>
+
+        <!-- Conditional Row 2.5: Custom Brand Input (Hidden by default) -->
+        <div id="custom-brand-section" class="hidden bg-gray-950/30 p-3 rounded-xl border border-gray-800 transition-all">
+          <label class="block text-[10px] font-bold text-blue-400 uppercase mb-1">Write in Brand Type</label>
+          <input type="text" id="card-brand-custom" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl p-3 text-sm outline-none text-white transition" placeholder="e.g. Upper Deck, Panini, Fleer">
         </div>
 
         <!-- Row 3: Player Name -->
@@ -92,7 +99,7 @@
           <div class="grid grid-cols-3 gap-2">
             <div>
               <label class="block text-[9px] font-bold text-gray-500 uppercase mb-1">Company</label>
-              <select id="card-company" class="w-full bg-gray-900 border border-gray-800 rounded-lg p-2 text-xs text-white outline-none">
+              <select id="card-company" class="w-full bg-gradient-to-b from-gray-900 to-gray-950 border border-gray-800 rounded-lg p-2 text-xs text-white outline-none">
                 <option value="PSA">PSA</option>
                 <option value="SGC">SGC</option>
                 <option value="Beckett">Beckett</option>
@@ -189,6 +196,17 @@
       }
     }
 
+    function handleBrandChange() {
+      const brand = document.getElementById('card-brand').value;
+      const customBrandSection = document.getElementById('custom-brand-section');
+      if (brand === 'Other') {
+        customBrandSection.classList.remove('hidden');
+        document.getElementById('card-brand-custom').focus();
+      } else {
+        customBrandSection.classList.add('hidden');
+      }
+    }
+
     function toggleSettings(open) {
       const drawer = document.getElementById('settings-drawer');
       drawer.classList.toggle('opacity-0', !open);
@@ -209,6 +227,12 @@
       const player = document.getElementById('card-player').value.trim();
       const year = document.getElementById('card-year').value.trim();
       const rawGraded = document.getElementById('card-rawgraded').value;
+      
+      const brandSelect = document.getElementById('card-brand').value;
+      const customBrandInput = document.getElementById('card-brand-custom').value.trim();
+      
+      // Smart filter: use text input if 'Other' is picked, otherwise use dropdown option
+      const assignedBrand = brandSelect === 'Other' ? (customBrandInput || 'Other') : brandSelect;
 
       if (!player || !year) { showNotification('Missing Items', 'Year and Player Name are required.', 'error'); return; }
 
@@ -217,7 +241,7 @@
       const payload = {
         year: year,
         player: player,
-        brand: document.getElementById('card-brand').value,
+        brand: assignedBrand,
         subset: document.getElementById('card-subset').value.trim() || 'Base',
         cardNum: document.getElementById('card-num').value.trim() || 'N/A',
         rawGraded: rawGraded,
@@ -239,7 +263,7 @@
         showNotification('Saved!', `${payload.player} added to database.`, 'success');
         updateStatus('Connected', 'green');
         
-        // Flash clear core inputs
+        // Reset inputs cleanly
         document.getElementById('card-player').value = "";
         document.getElementById('card-subset').value = "";
         document.getElementById('card-num').value = "";
@@ -247,6 +271,9 @@
         document.getElementById('card-cost').value = "";
         document.getElementById('card-grade').value = "";
         document.getElementById('card-note').value = "";
+        document.getElementById('card-brand-custom').value = "";
+        document.getElementById('card-brand').value = "Topps";
+        handleBrandChange();
       } catch (err) {
         showNotification('Connection Error', 'Could not record card row.', 'error');
         updateStatus('Save Error', 'red');
@@ -262,7 +289,7 @@
       const box = document.getElementById('notification');
       document.getElementById('notification-title').innerText = title;
       document.getElementById('notification-desc').innerText = message;
-      document.getElementById('notification-bg').className = `border rounded-2xl p-4 shadow-2xl flex items-center space-x-3 ${type === 'success' ? 'bg-emerald-950 border-emerald-800' : 'bg-red-950 border-red-800'}`;
+      document.getElementById('notification-bg').className = `border rounded-2xl p-4 shadow-2xl flex items-center space-x-3 ${type === 'success' ? 'bg-emerald-950 border-emerald-800' : type === 'error' ? 'bg-red-950 border-red-800' : 'bg-gray-900 border-gray-800'}`;
       box.classList.remove('-translate-y-24');
       setTimeout(() => box.classList.add('-translate-y-24'), 3000);
     }
