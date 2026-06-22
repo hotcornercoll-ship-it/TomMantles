@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SlabLink - Custom Ledger</title>
+  <title>Tom's Log - Custom Ledger</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
@@ -31,7 +31,7 @@
           💎
         </div>
         <div>
-          <h1 class="text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 italic">SLABLINK</h1>
+          <h1 class="text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 italic">Tom's Log</h1>
           <p class="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Custom Collection Ledger</p>
         </div>
       </div>
@@ -87,10 +87,19 @@
           <input type="text" id="card-brand-custom" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl p-3 text-sm outline-none text-white transition" placeholder="e.g. Upper Deck, Panini, Fleer">
         </div>
 
-        <!-- Row 3: Player Name -->
+        <!-- Row 3: Player Dropdown -->
         <div>
           <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Player Name</label>
-          <input type="text" id="card-player" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl p-3 text-sm outline-none text-white transition" placeholder="e.g. Elly De La Cruz">
+          <select id="card-player-select" onchange="handlePlayerChange()" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl p-3 text-sm outline-none text-white transition appearance-none">
+            <option value="Mickey Mantle">Mickey Mantle</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <!-- Conditional Row 3.5: Custom Player Input (Hidden by default) -->
+        <div id="custom-player-section" class="hidden bg-gray-950/30 p-3 rounded-xl border border-gray-800 transition-all">
+          <label class="block text-[10px] font-bold text-blue-400 uppercase mb-1">Write in Player Name</label>
+          <input type="text" id="card-player-custom" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl p-3 text-sm outline-none text-white transition" placeholder="e.g. Willie Mays, Ken Griffey Jr.">
         </div>
 
         <!-- Row 4: Grading Block (Hidden by default, shows when "Graded" is chosen) -->
@@ -207,6 +216,17 @@
       }
     }
 
+    function handlePlayerChange() {
+      const playerSelect = document.getElementById('card-player-select').value;
+      const customPlayerSection = document.getElementById('custom-player-section');
+      if (playerSelect === 'Other') {
+        customPlayerSection.classList.remove('hidden');
+        document.getElementById('card-player-custom').focus();
+      } else {
+        customPlayerSection.classList.add('hidden');
+      }
+    }
+
     function toggleSettings(open) {
       const drawer = document.getElementById('settings-drawer');
       drawer.classList.toggle('opacity-0', !open);
@@ -224,23 +244,26 @@
     async function submitCustomCard() {
       if (!config.sheetAppUrl) { showNotification('Link Required', 'Configure Web App URL first.', 'error'); toggleSettings(true); return; }
 
-      const player = document.getElementById('card-player').value.trim();
       const year = document.getElementById('card-year').value.trim();
       const rawGraded = document.getElementById('card-rawgraded').value;
       
       const brandSelect = document.getElementById('card-brand').value;
       const customBrandInput = document.getElementById('card-brand-custom').value.trim();
-      
-      // Smart filter: use text input if 'Other' is picked, otherwise use dropdown option
       const assignedBrand = brandSelect === 'Other' ? (customBrandInput || 'Other') : brandSelect;
 
-      if (!player || !year) { showNotification('Missing Items', 'Year and Player Name are required.', 'error'); return; }
+      const playerSelect = document.getElementById('card-player-select').value;
+      const customPlayerInput = document.getElementById('card-player-custom').value.trim();
+      const assignedPlayer = playerSelect === 'Other' ? (customPlayerInput || 'Other') : playerSelect;
+
+      // Ensure form meets key field requirements
+      if (!year) { showNotification('Missing Items', 'Year field is required.', 'error'); return; }
+      if (playerSelect === 'Other' && !customPlayerInput) { showNotification('Missing Items', 'Please write in the player name.', 'error'); return; }
 
       updateStatus('Writing Row...', 'yellow');
 
       const payload = {
         year: year,
-        player: player,
+        player: assignedPlayer,
         brand: assignedBrand,
         subset: document.getElementById('card-subset').value.trim() || 'Base',
         cardNum: document.getElementById('card-num').value.trim() || 'N/A',
@@ -263,17 +286,21 @@
         showNotification('Saved!', `${payload.player} added to database.`, 'success');
         updateStatus('Connected', 'green');
         
-        // Reset inputs cleanly
-        document.getElementById('card-player').value = "";
+        // Reset screen state cleanly
         document.getElementById('card-subset').value = "";
         document.getElementById('card-num').value = "";
         document.getElementById('card-serial').value = "";
         document.getElementById('card-cost').value = "";
         document.getElementById('card-grade').value = "";
         document.getElementById('card-note').value = "";
+        
         document.getElementById('card-brand-custom').value = "";
         document.getElementById('card-brand').value = "Topps";
         handleBrandChange();
+
+        document.getElementById('card-player-custom').value = "";
+        document.getElementById('card-player-select').value = "Mickey Mantle";
+        handlePlayerChange();
       } catch (err) {
         showNotification('Connection Error', 'Could not record card row.', 'error');
         updateStatus('Save Error', 'red');
